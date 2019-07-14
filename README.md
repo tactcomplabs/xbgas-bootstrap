@@ -43,7 +43,7 @@ the following option:
 
 The full CMake command line will resemble the following:
 ```
-cmake -DXBGAS\_RV32=ON ../
+cmake -DXBGAS_RV32=ON ../
 ```
 
 ## Authors
