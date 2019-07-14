@@ -1,0 +1,89 @@
+# xBGAS-bootstrap Top-Level CMake Description
+#
+# Copyright (C) 2017-2018 Tactical Computing Laboratories, LLC
+# All Rights Reserved
+# contact@tactcomplabs.com
+#
+# This file is a part of the XBGAS-RUNTIME package.  For license
+# information, see the LICENSE file in the top level directory of
+# this distribution.
+#
+
+cmake_minimum_required (VERSION 2.6)
+project(xbgas-bootstrap C ASM)
+
+#------------------------------------------------------------------------
+#-- COMPILER OPTIONS
+#------------------------------------------------------------------------
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -Wall -DXBGAS_DEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -Wall")
+
+#------------------------------------------------------------------------
+#-- TOP LEVEL PATHS
+#------------------------------------------------------------------------
+if(XBGAS_RV32)
+  set(CMAKE_C_COMPILER "${RISCV_ENV}/bin/riscv32-unknown-elf-gcc")
+  set(CMAKE_ASM_COMPILER "${RISCV_ENV}/bin/riscv32-unknown-elf-gcc")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -DXBGAS_RV32")
+else()
+   set(CMAKE_C_COMPILER "${RISCV_ENV}/bin/riscv64-unknown-elf-gcc")
+   set(CMAKE_ASM_COMPILER "${RISCV_ENV}/bin/riscv64-unknown-elf-gcc")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -DXBGAS_RV64")
+ endif()
+
+#------------------------------------------------------------------------
+#-- FIND PACKAGES
+#------------------------------------------------------------------------
+
+# Find all the relevant packages
+find_package(Doxygen)
+option(BUILD_DOCUMENTATION "Create and install the doxygen-ized API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
+
+set( RISCV_ENV "$ENV{RISCV}" )
+if(RISCV_ENV)
+  message(STATUS "RISCV environment set to ${RISCV_ENV}.")
+else()
+  message(FATAL_ERROR "RISCV environment variable is not set.")
+endif()
+
+#------------------------------------------------------------------------
+#-- DOCUMENTATION
+#------------------------------------------------------------------------
+
+# Doxygen config
+if(BUILD_DOCUMENTATION)
+  if( NOT DOXYGEN_FOUND)
+    message(FATAL_ERROR "Doxygen is required to build the documentation.")
+  endif()
+
+  set(doxyfile ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/xbgas-bootstrap.conf)
+
+  add_custom_target(doc
+                    COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    COMMENT "Generating API documentation with Doxygen"
+                    VERBATIM)
+
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/html DESTINATION share/doc)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/man DESTINATION share/man)
+
+  message(STATUS "Enabling developer documentation")
+endif()
+
+#------------------------------------------------------------------------
+#-- TESTING
+#------------------------------------------------------------------------
+# Enable testing
+enable_testing()
+
+#------------------------------------------------------------------------
+#-- SUBDIRECTORIES
+#------------------------------------------------------------------------
+# Add our subdirectories
+add_subdirectory( src )
+add_subdirectory( test )
+
+
+#-- EOF
